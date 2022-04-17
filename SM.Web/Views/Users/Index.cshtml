@@ -1,0 +1,142 @@
+﻿@*
+   For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+   Layout = "_LayoutUsers";
+}
+
+@{
+   List<User> userList = null;
+   if (ViewBag.users != null)
+   {
+      userList = ViewBag.users;
+   }
+}
+@using SM.Entity.Entity;
+
+<div class="text-center pt-5 mb-5">
+   <h1> Index Page </h1>
+</div>
+<!-- Main content -->
+<section class="content">
+   <div class="container-fluid">
+      <div class="row">
+         <div class="col-12">
+            <div class="card">
+               <div class="card-header">
+                  <h3 class="card-title">List of users</h3>
+               </div>
+               <!-- /.card-header -->
+               <div class="card-body">
+                  <table id="example2" class="table table-bordered table-hover">
+                     <thead>
+                        <tr>
+                           <th>UserId</th>
+                           <th>First Name</th>
+                           <th>Last Name</th>
+                           <th>Email</th>
+                           <th>Edit</th>
+                           <th>Delete</th>
+
+                        </tr>
+                     </thead>
+                     <tbody>
+                        @foreach (User sm in userList)
+                        {
+                           <tr>
+                              <td>@sm.UserId</td>
+                              <td>@sm.FirstName</td>
+                              <td>
+                                 @sm.Lastname
+                              </td>
+                              <td>@sm.EmailAddress</td>
+                              <td>
+                                 <button type="button" class="btn" data-toggle="modal" data-target="#UpdateDetailsModel"
+                                         onclick="fnGetUpdateDetailModal(this)" data-id="@sm.UserId">
+                                    Edit
+                                 </button>
+                              </td>
+                              <td>
+                                 <button type="button" class="btn"  onclick="fnGetDeletDetailModal(this)" data-toggle="modal"
+                                         data-target="#DeleteDetailsModel" data-id="@sm.UserId">
+                                    Delete
+                                 </button>
+                              </td>
+                           </tr>
+                         }
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+</section>
+
+<section id="Model1"></section>
+<section id="Model2"></section>
+
+
+<script>
+   function fnGetUpdateDetailModal(ud) {
+      var id = ud.getAttribute("data-id");
+      $.ajax({
+         url: '/Users/UpdateUserDetailsGet',
+         type: 'GET',
+         data: { "id": id },
+         success: function (response) {
+            $('#Model1').html(response);
+            $('#UpdateDetailsModel').modal("show");
+         }
+      });
+   }
+   function fnPostUpdateDetail() {
+      var data = {};
+      data.userId = document.getElementById("id").value;
+      data.firstName = document.getElementById("idFirstName").value;
+      data.lastname = document.getElementById("idLastName").value;
+      data.emailAddress = document.getElementById("idEmail").value;
+      $.ajax({
+         url: '/Users/UpdateUserDetailsPost',
+         type: 'POST',
+         data: data,
+         success: function (result) {
+            if (result.value == "true") {
+               alert("Your details are updated.");
+            }
+            else {
+               alert("error");
+            }
+         }
+      });
+   }
+   function fnGetDeletDetailModal(ud) {
+      var id = ud.getAttribute("data-id");
+      $.ajax({
+         url: '/Users/DeleteUserDetailsGet',
+         type: 'GET',
+         data: { "id": id },
+         success: function (response) {
+            $('#Model2').html(response);
+            $('#DeleteDetailsModel').modal("show");
+         }
+      });
+   }
+   function fnPostDeleteDetail() {
+      var data = {};
+      data.userId = document.getElementById("id").value;
+      $.ajax({
+         url: '/Users/DeleteUserDetailsPost',
+         type: 'POST',
+         data: data,
+         success: function (result) {
+            if (result.value == "true") {
+               alert("Your details are deleted.");
+            }
+            else {
+               alert("Invalid");
+            }
+         }
+      });
+   }
+</script> 

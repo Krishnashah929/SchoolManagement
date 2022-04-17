@@ -1,0 +1,91 @@
+﻿@using SM.Entity.Entity
+@model User
+@{
+   Layout = "_Layout";
+}
+<div class="register-box m-auto">
+   <div class="register-logo mt-5">
+      <a asp-action="Dashboard" asp-controller="Home"><b>School</b>Management</a>
+   </div>
+   <!-- Main content -->
+   <section class="content">
+      <div class="container-fluid">
+         <div class="row">
+            <div class="col-md-12">
+               <div class="card shadow mt-3">
+                  <p class="login-box-msg mt-3">Register a new membership</p>
+                  <!-- New user registration form -->
+                  <form id="idSigninForm" method="post" asp-controller="Auth" asp-action="Register">
+                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                     <div class="card-body">
+                        <div class="form-group">
+                           <div class="input-group">
+                              <input type="text" asp-for="FirstName" class="form-control" placeholder="First Name">
+                              <div class="input-group-append">
+                                 <div class="input-group-text">
+                                    <span class="fas fa-user"></span>
+                                 </div>
+                              </div>
+                           </div>
+                           <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                           <div class="input-group">
+                              <input type="text" asp-for="Lastname" class="form-control" placeholder="Last Name">
+                              <div class="input-group-append">
+                                 <div class="input-group-text">
+                                    <span class="fas fa-user"></span>
+                                 </div>
+                              </div>
+                           </div>
+                           <span asp-validation-for="Lastname" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                           <div class="input-group">
+                              <input type="email" asp-for="EmailAddress" class="form-control" placeholder="Enter email">
+                              <div class="input-group-append">
+                                 <div class="input-group-text">
+                                    <span class="fas fa-envelope"></span>
+                                 </div>
+                              </div>
+                           </div>
+                           <span asp-validation-for="EmailAddress" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                           <div class="input-group">
+                              <input type="password" asp-for="Password" class="form-control" placeholder=" Enter Password">
+                              <div class="input-group-append">
+                                 <div class="input-group-text">
+                                    <span class="fas fa-lock"></span>
+                                 </div>
+                              </div>
+                           </div>
+                           <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                           <div class="input-group">
+                              <input type="password" asp-for="RetypePassword" class="form-control" placeholder="Retype password">
+                              <div class="input-group-append">
+                                 <div class="input-group-text">
+                                    <span class="fas fa-lock"></span>
+                                 </div>
+                              </div>
+                           </div>
+                           <span asp-validation-for="RetypePassword" class="text-danger"></span>
+                        </div>
+                     </div>
+                     <div class="row m-auto">
+                        <div class="col">
+                           <button type="submit" class="btn btn-primary btn-block">  Register </button>
+                        </div>
+                     </div>
+                  </form>
+                  <!--/. New user registration form -->
+                  <a asp-controller="Auth" asp-action="Login" class="text-center mt-3 mb-3">I already have a membership</a>
+               </div>
+            </div>
+         </div>
+      </div>
+   </section>
+</div>
+

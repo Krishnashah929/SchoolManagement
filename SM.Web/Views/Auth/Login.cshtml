@@ -1,0 +1,54 @@
+﻿@model SM.Models.LoginModel
+@{  
+  Layout = "_Layout";
+}
+<div class="login-box m-auto">
+   <div class="login-logo mt-5">
+      <a asp-action="Dashboard" asp-controller="Home"><b>School</b> Management</a>
+   </div>
+   <div class="card mt-5 shadow">
+      <div class="card-body login-card-body">
+         <p class="login-box-msg">Sign in to start your session</p>
+         <!-- Signin form -->
+         <form id="idSigninForm" method="post" asp-action="Login" asp-controller="Auth">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="card-body">
+               <div class="form-group">
+                  <div class="input-group">
+                     <input type="email" asp-for="EmailAddress" class="form-control" placeholder="Enter email">
+                     <div class="input-group-append">
+                        <div class="input-group-text">
+                           <span class="fas fa-envelope"></span>
+                        </div>
+                     </div>
+                  </div>
+                  <span asp-validation-for="EmailAddress" class="text-danger"></span>
+               </div>
+               <div class="form-group">
+                  <div class="input-group">
+                     <input type="password" asp-for="Password" class="form-control" placeholder="Password">
+                     <div class="input-group-append">
+                        <div class="input-group-text">
+                           <span class="fas fa-lock"></span>
+                        </div>
+                     </div>
+                  </div>
+                  <span asp-validation-for="Password" class="text-danger"></span>
+               </div>
+            </div>
+            <div class="row m-auto">
+               <div class="col">
+                  <button type="submit" name="submit" class="btn btn-primary btn-block"> Sign in </button>
+               </div>
+            </div>
+         </form>
+         <!--/. Signin form -->
+         <p class="mb-1 mt-3 text-center">
+            <a href="forgot-password.html">I forgot my password</a>
+         </p>
+         <p class="mb-0 text-center">
+            <a asp-action="Register" asp-controller="Auth" class="text-center">Register a new membership</a>
+         </p>
+      </div>
+   </div>
+</div>
