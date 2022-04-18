@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using SM.Entity.Entity;
+using SM.Entity;
 using SM.Web.Data;
 using SM.Web.Models;
 using System;

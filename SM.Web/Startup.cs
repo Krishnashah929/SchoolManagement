@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ using SM.Web.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace SM.Web
@@ -26,10 +28,40 @@ namespace SM.Web
         {
             services.AddControllersWithViews();
             services.AddDistributedMemoryCache();
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/login";
+                    options.Events = new CookieAuthenticationEvents()
+                    {
+                        OnSigningIn = async context =>
+                        {
+                            var principal = context.Principal;
+                            if (principal.HasClaim(x => x.Type == ClaimTypes.NameIdentifier))
+                            {
+                                if (principal.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value == "kdshah929@gmail.com")
+                                {
+                                    var claimsIdentity = principal.Identity as ClaimsIdentity;
+                                    claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, "Admin"));
+                                }
+                            }
+                            await Task.CompletedTask;
+                        },
+                        OnSignedIn = async context =>
+                        {
+                            await Task.CompletedTask;
+                        },
+                        OnSigningOut = async context =>
+                        {
+                            await Task.CompletedTask;
+                        },
+                    };
+                });
             services.AddSession();
 
             services.AddRazorPages().AddRazorRuntimeCompilation();
 
+ 
 
             services.AddDbContext<SchoolManagementContext>(options => options.UseSqlServer(Configuration.GetConnectionString("SchoolManagementContext")));
         }
@@ -46,9 +78,9 @@ namespace SM.Web
                 app.UseExceptionHandler("/Home/Error");
             }
             app.UseStaticFiles();
-             
+
             app.UseSession();
-             
+
             app.UseRouting();
 
             app.UseAuthorization();

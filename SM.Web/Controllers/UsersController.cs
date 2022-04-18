@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SM.Entity.Entity;
+using SM.Entity;
 using SM.Web.Data;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,7 @@ namespace SM.Web.Controllers
         /// After successfull login of user they will redirect on Index Page.
         /// </summary>
         #region Index(GET)
-        [HttpGet]
+        [Authorize(Roles = "Admin")]
         public IActionResult Index()
         {
             //int id = (int)HttpContext.Session.GetInt32("userID");

@@ -2,6 +2,7 @@
 using SM.Common;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 
 namespace SM.Models
 {
@@ -13,6 +14,7 @@ namespace SM.Models
         /// </summary>
         [Required(ErrorMessage = CommonValidations.PleaseEnterValidEmail)]
         [MaxLength(50)]
+        [DisplayName ("Email")]
         public string EmailAddress { get; set; }
 
         /// <summary>
@@ -21,6 +23,7 @@ namespace SM.Models
         [Required(ErrorMessage = CommonValidations.RequiredErrorMsg)]
         [DataType(DataType.Password)]
         [MaxLength(10)]
+        [DisplayName("Password")]
         public string Password { get; set; }
     }
 }

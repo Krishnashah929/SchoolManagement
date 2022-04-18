@@ -4,7 +4,9 @@
 @{
    Layout = "_LayoutUsers";
 }
-
+@{
+   ViewData["Title"] = "Index";
+}
 @{
    List<User> userList = null;
    if (ViewBag.users != null)
@@ -12,66 +14,70 @@
       userList = ViewBag.users;
    }
 }
-@using SM.Entity.Entity;
+@using SM.Entity;
 
 <div class="text-center pt-5 mb-5">
    <h1> Index Page </h1>
 </div>
-<!-- Main content -->
-<section class="content">
-   <div class="container-fluid">
-      <div class="row">
-         <div class="col-12">
-            <div class="card">
-               <div class="card-header">
-                  <h3 class="card-title">List of users</h3>
-               </div>
-               <!-- /.card-header -->
-               <div class="card-body">
-                  <table id="example2" class="table table-bordered table-hover">
-                     <thead>
-                        <tr>
-                           <th>UserId</th>
-                           <th>First Name</th>
-                           <th>Last Name</th>
-                           <th>Email</th>
-                           <th>Edit</th>
-                           <th>Delete</th>
-
-                        </tr>
-                     </thead>
-                     <tbody>
-                        @foreach (User sm in userList)
-                        {
+@if (User.Identity.IsAuthenticated)
+{
+   <!-- Main content -->
+   <section class="content">
+      <div class="container-fluid">
+         <div class="row">
+            <div class="col-12">
+               <div class="card">
+                  <div class="card-header">
+                     <h3 class="card-title">  Welcome, List of users</h3>
+                  </div>
+                  <!-- /.card-header -->
+                  <div class="card-body">
+                     <table id="example2" class="table table-bordered table-hover">
+                        <thead>
                            <tr>
-                              <td>@sm.UserId</td>
-                              <td>@sm.FirstName</td>
-                              <td>
-                                 @sm.Lastname
-                              </td>
-                              <td>@sm.EmailAddress</td>
-                              <td>
-                                 <button type="button" class="btn" data-toggle="modal" data-target="#UpdateDetailsModel"
-                                         onclick="fnGetUpdateDetailModal(this)" data-id="@sm.UserId">
-                                    Edit
-                                 </button>
-                              </td>
-                              <td>
-                                 <button type="button" class="btn"  onclick="fnGetDeletDetailModal(this)" data-toggle="modal"
-                                         data-target="#DeleteDetailsModel" data-id="@sm.UserId">
-                                    Delete
-                                 </button>
-                              </td>
+                              <th>UserId</th>
+                              <th>First Name</th>
+                              <th>Last Name</th>
+                              <th>Email</th>
+                              <th>Edit</th>
+                              <th>Delete</th>
+
                            </tr>
-                         }
-                     </tbody>
-                  </table>
+                        </thead>
+                        <tbody>
+                           @foreach (User sm in userList)
+                           {
+                              <tr>
+                                 <td>@sm.UserId</td>
+                                 <td>@sm.FirstName</td>
+                                 <td>
+                                    @sm.Lastname
+                                 </td>
+                                 <td>@sm.EmailAddress</td>
+                                 <td>
+                                    <button type="button" class="btn" data-toggle="modal" data-target="#UpdateDetailsModel"
+                                            onclick="fnGetUpdateDetailModal(this)" data-id="@sm.UserId">
+                                       Edit
+                                    </button>
+                                 </td>
+                                 <td>
+                                    <button type="button" class="btn" onclick="fnGetDeletDetailModal(this)" data-toggle="modal"
+                                            data-target="#DeleteDetailsModel" data-id="@sm.UserId">
+                                       Delete
+                                    </button>
+                                 </td>
+                              </tr>
+                           }
+                        </tbody>
+                     </table>
+                  </div>
                </div>
             </div>
          </div>
       </div>
-   </div>
-</section>
+   </section>
+}
+ 
 
 <section id="Model1"></section>
 <section id="Model2"></section>

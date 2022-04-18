@@ -1,12 +1,17 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SM.Common;
-using SM.Entity.Entity;
+using SM.Entity;
 using SM.Models;
 using SM.Web.Data;
 using SM.Web.Models;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace SM.Web.Controllers
@@ -24,7 +29,8 @@ namespace SM.Web.Controllers
         /// This action method is for getting login modal.
         /// </summary>
         #region Login
-        [HttpGet]
+        [AllowAnonymous]
+        [HttpGet("login")]
         public IActionResult Login()
         {
             return View();
@@ -33,30 +39,37 @@ namespace SM.Web.Controllers
 
         /// <summary>
         /// Login for user from this post login method.
+        /// loginModel is a viewmodel and used for login form.
+        /// object of LoginModel is objLoginModel.
         /// </summary>
         #region Login(POST)
-        [HttpPost]
-        public IActionResult Login(LoginModel objLoginModel)
+        [AllowAnonymous]
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginModel objLoginModel)
         {
             try
             {
-                var loggedinUser = _schoolManagementContext.Users.Where(x => x.EmailAddress == objLoginModel.EmailAddress && x.Password == objLoginModel.Password).ToList();
                 if (ModelState.IsValid)
                 {
+                    var loggedinUser = _schoolManagementContext.Users.Where(x => x.EmailAddress == objLoginModel.EmailAddress).ToList();
                     if (loggedinUser.Count == 1)
                     {
                         User userdetails = _schoolManagementContext.Users.Where(x => x.EmailAddress == objLoginModel.EmailAddress && x.Password == objLoginModel.Password).FirstOrDefault();
                         if (userdetails != null)
                         {
                             HttpContext.Session.SetString("Userlogeddin", "true");
-                            HttpContext.Session.SetInt32("userId", userdetails.UserId);
+                            var claims = new List<Claim>();
+                            claims.Add(new Claim("emailAddress", objLoginModel.EmailAddress));
+                            claims.Add(new Claim(ClaimTypes.NameIdentifier, objLoginModel.EmailAddress));
+                            var claimIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                            var claimPrincipal = new ClaimsPrincipal(claimIdentity);
+                            await HttpContext.SignInAsync(claimPrincipal);
                             return RedirectToAction("Index", "Users");
                         }
                         else
                         {
-                            string message = "";
-                            message = CommonValidations.RecordNotExistsMsg;
-                            return View(message);
+                            TempData["Error"] = CommonValidations.RecordNotExistsMsg;
+                            return View();
                         }
                     }
                 }
@@ -82,17 +95,22 @@ namespace SM.Web.Controllers
 
         /// <summary>
         /// Register for user from this post Register method.
+        /// object of User is objUser.
         /// </summary>
         #region Register(POST)
         [HttpPost]
         public IActionResult Register(User objUser)
         {
-            string message = "";
+            string message = string.Empty;
             if (ModelState.IsValid)
             {
                 if (_schoolManagementContext.Users.Where(x => x.EmailAddress == objUser.EmailAddress).Count() == 0)
                 {
-                    objUser.Password = Cryptography.Encrypt(objUser.Password.ToString());   // Passing the Password to Encrypt method and the method will return encrypted string and stored in Password variable.  
+                    objUser.Password = Cryptography.Encrypt(objUser.Password.ToString());
+                    /// <summary>
+                    /// Passing the Password to Encrypt method and the method will return encrypted string and 
+                    /// stored in Password variable.  
+                    /// </summary>
                     objUser.CreatedDate = DateTime.Now;
                     objUser.IsActive = true;
 
@@ -113,12 +131,16 @@ namespace SM.Web.Controllers
 
         /// <summary>
         /// When user logout from their account.
+        /// Set session "Userlogeddin" as false when user logged out from their session.
+        /// After logged out session will be clear and user will be redirect to Main Dashboard PAge.
         /// </summary>
         #region LogOut
-        public IActionResult LogOut()
+        [Authorize]
+        public async Task<IActionResult> LogOut()
         {
             HttpContext.Session.SetString("Userlogeddin", false.ToString());
             HttpContext.Session.Clear();
+            await HttpContext.SignOutAsync();
             return RedirectToAction("Dashboard", "Home");
         }
         #endregion

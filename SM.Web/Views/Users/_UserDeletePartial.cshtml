@@ -1,4 +1,7 @@
-﻿@using SM.Entity.Entity
+﻿@using SM.Entity
+@{
+   ViewData["Title"] = "Delete Details";
+}
 <div class="modal shadow" id="DeleteDetailsModel">
    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -12,7 +15,7 @@
          </div>
          <div class="modal-body">
             <div class="row mt-3 ">
-               <span class="text-center" > Are you sure you want to delete this user ?</span>
+               <span class="text-center"> Are you sure you want to delete this user ?</span>
             </div>
             <input type="hidden" id="id" class="form-control" value="@Model.UserId" />
             <br>
