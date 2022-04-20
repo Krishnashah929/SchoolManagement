@@ -54,8 +54,7 @@ namespace SM.Web.Controllers
                     var loggedinUser = _schoolManagementContext.Users.Where(x => x.EmailAddress == objLoginModel.EmailAddress).ToList();
                     if (loggedinUser.Count == 1)
                     {
-                        User userdetails = _schoolManagementContext.Users.Where(x => x.EmailAddress == objLoginModel.EmailAddress && x.Password == objLoginModel.Password).FirstOrDefault();
-                        if (userdetails != null)
+                        if (loggedinUser != null)
                         {
                             HttpContext.Session.SetString("Userlogeddin", "true");
                             var claims = new List<Claim>();
@@ -143,6 +142,35 @@ namespace SM.Web.Controllers
             await HttpContext.SignOutAsync();
             return RedirectToAction("Dashboard", "Home");
         }
+        #endregion
+
+        /// <summary>
+        ///  Set password method will call when user set their password from email-template
+        /// </summary>
+        #region SetPasswordGet
+        [HttpGet]
+        public IActionResult SetPassword(SetPassword objSetPassword)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                     
+                }
+            }
+            catch (Exception)
+            {
+                return View("Error");
+            }
+            return View();
+        }
+        #endregion
+
+        /// <summary>
+        ///  Set password Post method will call when user enter both their password and click to set password.
+        /// </summary>
+        #region SetPasswordPost
+
         #endregion
     }
 }

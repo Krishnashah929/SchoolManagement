@@ -61,8 +61,6 @@ namespace SM.Web
 
             services.AddRazorPages().AddRazorRuntimeCompilation();
 
- 
-
             services.AddDbContext<SchoolManagementContext>(options => options.UseSqlServer(Configuration.GetConnectionString("SchoolManagementContext")));
         }
 
@@ -91,6 +89,8 @@ namespace SM.Web
                     name: "default",
                     pattern: "{controller=Auth}/{action=Login}/{id?}");
             });
+            AppDomain.CurrentDomain.SetData("ContentRootPath", env.ContentRootPath);
+            AppDomain.CurrentDomain.SetData("WebRootPath", env.WebRootPath);
         }
     }
 }
