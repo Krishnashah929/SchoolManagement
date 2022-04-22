@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SM.Common;
@@ -10,7 +11,10 @@ using SM.Web.Data;
 using SM.Web.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -20,10 +24,13 @@ namespace SM.Web.Controllers
     {
 
         private readonly SchoolManagementContext _schoolManagementContext;
-        public AuthController(SchoolManagementContext schoolManagementContext)
+        private readonly IHostingEnvironment _hostingEnvironment;
+        public AuthController(SchoolManagementContext schoolManagementContext, IHostingEnvironment hostingEnvironment)
         {
             _schoolManagementContext = schoolManagementContext;
+            _hostingEnvironment = hostingEnvironment;
         }
+
 
         /// <summary>
         /// This action method is for getting login modal.
@@ -100,22 +107,49 @@ namespace SM.Web.Controllers
         [HttpPost]
         public IActionResult Register(User objUser)
         {
+            //Remove coloum name from validation ModelState.Remove 
+            ModelState.Remove("Password");
+            ModelState.Remove("RetypePassword");
             string message = string.Empty;
             if (ModelState.IsValid)
             {
                 if (_schoolManagementContext.Users.Where(x => x.EmailAddress == objUser.EmailAddress).Count() == 0)
                 {
-                    objUser.Password = Cryptography.Encrypt(objUser.Password.ToString());
                     /// <summary>
                     /// Passing the Password to Encrypt method and the method will return encrypted string and 
                     /// stored in Password variable.  
                     /// </summary>
+
+                    HttpContext.Session.SetString("email", objUser.EmailAddress);
+
+                    objUser.Password = string.Empty;
                     objUser.CreatedDate = DateTime.Now;
-                    objUser.IsActive = true;
+                    objUser.IsActive = false;
 
                     _schoolManagementContext.Users.Add(objUser);
                     _schoolManagementContext.SaveChanges();
 
+                    //encrypt the userid for link in url.
+                    var userId = Cryptography.Encrypt(objUser.UserId.ToString());
+                    var userDetails = _schoolManagementContext.Users.Where(x => x.EmailAddress == objUser.EmailAddress).ToList();
+                    //link generation with userid.
+                    var link = "http://localhost:9334/Auth/SetPassword?link=" + userId;
+                    var email = objUser.EmailAddress;
+
+                    string webRootPath = _hostingEnvironment.WebRootPath + "/MalTemplates/SetPasswordTemplate.html";
+                    StreamReader reader = new StreamReader(webRootPath);
+                    string readFile = reader.ReadToEnd();
+                    string myString = string.Empty;
+                    myString = readFile;
+                    var subject = "Set Password";
+                    //when you have to replace the content of html page
+                    myString = myString.Replace("@@Name@@", objUser.FirstName);
+                    myString = myString.Replace("@@FullName@@", objUser.FirstName + " " + objUser.Lastname);
+                    myString = myString.Replace("@@Email@@", objUser.EmailAddress);
+                    myString = myString.Replace("@@Link@@", link);
+                    var body = myString.ToString();
+
+                    SendEmail(objUser.EmailAddress, body, subject);
                     return RedirectToAction("Login", "Auth");
                 }
                 else
@@ -125,6 +159,32 @@ namespace SM.Web.Controllers
                 }
             }
             return View();
+        }
+        #endregion
+
+        /// <summary>
+        ///  In this method we are sending main set password template to user. where they can set their new password.
+        /// </summary>
+        #region SendEmail
+        private void SendEmail(string email, string body, string subject)
+        {
+            using (MailMessage mm = new MailMessage("krishnaa9121@gmail.com", email))
+            {
+                mm.Subject = subject;
+                mm.Body = body;
+                mm.IsBodyHtml = true;
+
+                using (SmtpClient smtp = new SmtpClient())
+                {
+                    smtp.Host = "smtp.gmail.com";
+                    smtp.EnableSsl = true;
+                    NetworkCredential NetworkCred = new NetworkCredential("krishnaa9121@gmail.com", "Kri$hn@91");
+                    smtp.UseDefaultCredentials = false;
+                    smtp.Credentials = NetworkCred;
+                    smtp.Port = 587;
+                    smtp.Send(mm);
+                }
+            }
         }
         #endregion
 
@@ -144,25 +204,21 @@ namespace SM.Web.Controllers
         }
         #endregion
 
+
         /// <summary>
         ///  Set password method will call when user set their password from email-template
         /// </summary>
         #region SetPasswordGet
         [HttpGet]
-        public IActionResult SetPassword(SetPassword objSetPassword)
+        public IActionResult SetPassword(string link)
         {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                     
-                }
-            }
-            catch (Exception)
-            {
-                return View("Error");
-            }
-            return View();
+
+            //int id = Convert.ToInt32(HttpContext.Session.SetString("links", link));
+            link = Cryptography.Decrypt(link.ToString());
+            int id = Convert.ToInt32(link);
+            HttpContext.Session.SetInt32("links", id);
+            var userDetails = _schoolManagementContext.Users.Where(x => x.UserId == id).FirstOrDefault();
+            return View(userDetails);
         }
         #endregion
 
@@ -170,7 +226,51 @@ namespace SM.Web.Controllers
         ///  Set password Post method will call when user enter both their password and click to set password.
         /// </summary>
         #region SetPasswordPost
+        [HttpPost]
+        public IActionResult SetPassword(User objUser)
+        {
+            string message = string.Empty;
+            ModelState.Remove("FirstName");
+            ModelState.Remove("Lastname");
+            ModelState.Remove("EmailAddress");
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    int id = (int)HttpContext.Session.GetInt32("links");
 
+                    if (id != null)
+                    {
+                        User updateDetails = _schoolManagementContext.Users.FirstOrDefault(x => x.UserId == id);
+
+                        updateDetails.ModifiedDate = DateTime.Now;
+                        updateDetails.EmailAddress = objUser.EmailAddress;
+                        /// <summary>
+                        /// Passing the Password to Encrypt method and the method will return encrypted string and 
+                        /// stored in Password variable.  
+                        /// </summary>
+                        objUser.Password = Cryptography.Encrypt(objUser.Password.ToString());
+                        objUser.CreatedDate = DateTime.Now;
+                        objUser.IsActive = true;
+
+                        _schoolManagementContext.Users.Update(objUser);
+                        _schoolManagementContext.SaveChanges();
+
+                        return RedirectToAction("Login", "Auth");
+                    }
+                    else
+                    {
+                        message = CommonValidations.RecordExistsMsg;
+                        return Content(message);
+                    }
+                }
+            }
+            catch (Exception )
+            {
+                return View("Error");
+            }
+            return View();
+        }
         #endregion
     }
 }

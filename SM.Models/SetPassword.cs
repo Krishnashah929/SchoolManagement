@@ -13,6 +13,14 @@ namespace SM.Models
     public class SetPassword
     {
         /// <summary>
+        /// Email Address input feild.
+        /// </summary>
+        [Required(ErrorMessage = CommonValidations.PleaseEnterValidEmail)]
+        [MaxLength(50)]
+        [DisplayName("Email")]
+        public string EmailAddress { get; set; }
+
+        /// <summary>
         /// Password input feild.
         /// </summary>
         [Required(ErrorMessage = CommonValidations.RequiredErrorMsg)]
@@ -32,5 +40,17 @@ namespace SM.Models
         [MaxLength(10)]
         [DisplayName("Reenter Passwird")]
         public string RetypePassword { get; set; }
+
+        /// <summary>
+        /// ISactive feild for users.
+        /// </summary>
+        [DisplayName("Active")]
+        public bool IsActive { get; set; }
+
+        /// <summary>
+        /// Created date field for first time of user create account date.
+        /// </summary>
+        [DisplayName("Created Date")]
+        public DateTime CreatedDate { get; set; }
     }
 }

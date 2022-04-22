@@ -11,6 +11,8 @@ namespace SM.Entity
 {
     public partial class User
     {
+        public string setPasswordCode;
+
         public User()
         {
             UserRoles = new HashSet<UserRole>();
@@ -102,7 +104,7 @@ namespace SM.Entity
         [Compare("Password", ErrorMessage = CommonValidations.ComparePasswordMsg)]
         [DataType(DataType.Password)]
         [MaxLength(10)]
-        [DisplayName("Reenter Passwird")]
+        [DisplayName("Reenter Password")]
         public string RetypePassword { get; set; }
         public virtual ICollection<UserRole> UserRoles { get; set; }
     }
