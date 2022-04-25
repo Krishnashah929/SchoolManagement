@@ -2,13 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SM.Entity;
+using SM.Repositories.IRepository;
 using SM.Web.Data;
 using SM.Web.Models;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SM.Web.Controllers
 {
@@ -16,11 +13,12 @@ namespace SM.Web.Controllers
     {
 
         private readonly SchoolManagementContext _schoolManagementContext;
+       
         public HomeController(SchoolManagementContext schoolManagementContext)
         {
             _schoolManagementContext = schoolManagementContext;
         }
-
+       
         /// <summary>
         /// Main Dashboard when user is not logged in.
         /// </summary>

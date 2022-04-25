@@ -31,13 +31,12 @@ namespace SM.Web.Controllers
             _hostingEnvironment = hostingEnvironment;
         }
 
-
         /// <summary>
         /// This action method is for getting login modal.
         /// </summary>
         #region Login
         [AllowAnonymous]
-        [HttpGet("login")]
+        [HttpGet]
         public IActionResult Login()
         {
             return View();
@@ -58,25 +57,23 @@ namespace SM.Web.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var loggedinUser = _schoolManagementContext.Users.Where(x => x.EmailAddress == objLoginModel.EmailAddress).ToList();
-                    if (loggedinUser.Count == 1)
+                    var userPassword = EncryptionDecryption.Encrypt(objLoginModel.Password.ToString());
+                    var loggedinUser = _schoolManagementContext.Users.FirstOrDefault(x => x.EmailAddress == objLoginModel.EmailAddress && x.Password == userPassword);
+                    if (loggedinUser != null)
                     {
-                        if (loggedinUser != null)
-                        {
-                            HttpContext.Session.SetString("Userlogeddin", "true");
-                            var claims = new List<Claim>();
-                            claims.Add(new Claim("emailAddress", objLoginModel.EmailAddress));
-                            claims.Add(new Claim(ClaimTypes.NameIdentifier, objLoginModel.EmailAddress));
-                            var claimIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                            var claimPrincipal = new ClaimsPrincipal(claimIdentity);
-                            await HttpContext.SignInAsync(claimPrincipal);
-                            return RedirectToAction("Index", "Users");
-                        }
-                        else
-                        {
-                            TempData["Error"] = CommonValidations.RecordNotExistsMsg;
-                            return View();
-                        }
+                        HttpContext.Session.SetString("Userlogeddin", "true");
+                        var claims = new List<Claim>();
+                        claims.Add(new Claim("emailAddress", objLoginModel.EmailAddress));
+                        claims.Add(new Claim(ClaimTypes.NameIdentifier, objLoginModel.EmailAddress));
+                        var claimIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                        var claimPrincipal = new ClaimsPrincipal(claimIdentity);
+                        await HttpContext.SignInAsync(claimPrincipal);
+                        return RedirectToAction("Index", "Users");
+                    }
+                    else
+                    {
+                        TempData["Error"] = CommonValidations.RecordNotExistsMsg;
+                        return View();
                     }
                 }
             }
@@ -107,56 +104,58 @@ namespace SM.Web.Controllers
         [HttpPost]
         public IActionResult Register(User objUser)
         {
-            //Remove coloum name from validation ModelState.Remove 
-            ModelState.Remove("Password");
-            ModelState.Remove("RetypePassword");
-            string message = string.Empty;
-            if (ModelState.IsValid)
+            try
             {
-                if (_schoolManagementContext.Users.Where(x => x.EmailAddress == objUser.EmailAddress).Count() == 0)
+                //Remove coloum name from validation ModelState.Remove 
+                ModelState.Remove("Password");
+                ModelState.Remove("RetypePassword");
+                string message = string.Empty;
+                if (ModelState.IsValid)
                 {
-                    /// <summary>
-                    /// Passing the Password to Encrypt method and the method will return encrypted string and 
-                    /// stored in Password variable.  
-                    /// </summary>
+                    if (_schoolManagementContext.Users.Where(x => x.EmailAddress == objUser.EmailAddress).Count() == 0)
+                    {
 
-                    HttpContext.Session.SetString("email", objUser.EmailAddress);
+                        HttpContext.Session.SetString("email", objUser.EmailAddress);
 
-                    objUser.Password = string.Empty;
-                    objUser.CreatedDate = DateTime.Now;
-                    objUser.IsActive = false;
+                        objUser.Password = string.Empty;
+                        objUser.CreatedDate = DateTime.Now;
+                        objUser.IsActive = false;
 
-                    _schoolManagementContext.Users.Add(objUser);
-                    _schoolManagementContext.SaveChanges();
+                        _schoolManagementContext.Users.Add(objUser);
+                        _schoolManagementContext.SaveChanges();
 
-                    //encrypt the userid for link in url.
-                    var userId = Cryptography.Encrypt(objUser.UserId.ToString());
-                    var userDetails = _schoolManagementContext.Users.Where(x => x.EmailAddress == objUser.EmailAddress).ToList();
-                    //link generation with userid.
-                    var link = "http://localhost:9334/Auth/SetPassword?link=" + userId;
-                    var email = objUser.EmailAddress;
+                        //encrypt the userid for link in url.
+                        var userId = EncryptionDecryption.Encrypt(objUser.UserId.ToString());
+                        var userDetails = _schoolManagementContext.Users.Where(x => x.EmailAddress == objUser.EmailAddress).ToList();
+                        //link generation with userid.
+                        var link = "http://localhost:9334/Auth/SetPassword?link=" + userId;
 
-                    string webRootPath = _hostingEnvironment.WebRootPath + "/MalTemplates/SetPasswordTemplate.html";
-                    StreamReader reader = new StreamReader(webRootPath);
-                    string readFile = reader.ReadToEnd();
-                    string myString = string.Empty;
-                    myString = readFile;
-                    var subject = "Set Password";
-                    //when you have to replace the content of html page
-                    myString = myString.Replace("@@Name@@", objUser.FirstName);
-                    myString = myString.Replace("@@FullName@@", objUser.FirstName + " " + objUser.Lastname);
-                    myString = myString.Replace("@@Email@@", objUser.EmailAddress);
-                    myString = myString.Replace("@@Link@@", link);
-                    var body = myString.ToString();
+                        string webRootPath = _hostingEnvironment.WebRootPath + "/MalTemplates/SetPasswordTemplate.html";
+                        StreamReader reader = new StreamReader(webRootPath);
+                        string readFile = reader.ReadToEnd();
+                        string myString = string.Empty;
+                        myString = readFile;
+                        var subject = "Set Password";
+                        //when you have to replace the content of html page
+                        myString = myString.Replace("@@Name@@", objUser.FirstName);
+                        myString = myString.Replace("@@FullName@@", objUser.FirstName + " " + objUser.Lastname);
+                        myString = myString.Replace("@@Email@@", objUser.EmailAddress);
+                        myString = myString.Replace("@@Link@@", link);
+                        var body = myString.ToString();
 
-                    SendEmail(objUser.EmailAddress, body, subject);
-                    return RedirectToAction("Login", "Auth");
+                        SendEmail(objUser.EmailAddress, body, subject);
+                        return RedirectToAction("Login", "Auth");
+                    }
+                    else
+                    {
+                        message = CommonValidations.RecordExistsMsg;
+                        return Content(message);
+                    }
                 }
-                else
-                {
-                    message = CommonValidations.RecordExistsMsg;
-                    return Content(message);
-                }
+            }
+            catch (Exception)
+            {
+                return View("Error");
             }
             return View();
         }
@@ -204,7 +203,6 @@ namespace SM.Web.Controllers
         }
         #endregion
 
-
         /// <summary>
         ///  Set password method will call when user set their password from email-template
         /// </summary>
@@ -212,13 +210,20 @@ namespace SM.Web.Controllers
         [HttpGet]
         public IActionResult SetPassword(string link)
         {
+            try
+            {
 
-            //int id = Convert.ToInt32(HttpContext.Session.SetString("links", link));
-            link = Cryptography.Decrypt(link.ToString());
-            int id = Convert.ToInt32(link);
-            HttpContext.Session.SetInt32("links", id);
-            var userDetails = _schoolManagementContext.Users.Where(x => x.UserId == id).FirstOrDefault();
-            return View(userDetails);
+                //int id = Convert.ToInt32(HttpContext.Session.SetString("links", link));
+                link = EncryptionDecryption.Decrypt(link.ToString());
+                int id = Convert.ToInt32(link);
+                HttpContext.Session.SetInt32("links", id);
+                var userDetails = _schoolManagementContext.Users.Where(x => x.UserId == id).FirstOrDefault();
+                return View(userDetails);
+            }
+            catch (Exception)
+            {
+                return View("Error");
+            }
         }
         #endregion
 
@@ -229,35 +234,42 @@ namespace SM.Web.Controllers
         [HttpPost]
         public IActionResult SetPassword(User objUser)
         {
-            string message = string.Empty;
-            ModelState.Remove("FirstName");
-            ModelState.Remove("Lastname");
-            ModelState.Remove("EmailAddress");
-            if (ModelState.IsValid)
+            try
             {
-                int id = (int)HttpContext.Session.GetInt32("links");
-
-                if (id != null)
+                string message = string.Empty;
+                ModelState.Remove("FirstName");
+                ModelState.Remove("Lastname");
+                ModelState.Remove("EmailAddress");
+                if (ModelState.IsValid)
                 {
-                    User updateDetails = _schoolManagementContext.Users.FirstOrDefault(x => x.UserId == id);
-                  
-                    //Passing the Password to Encrypt method and the method will return encrypted string and 
-                    // stored in Password variable.  
-                  
-                    updateDetails.Password = Cryptography.Encrypt(objUser.Password.ToString());
-                    updateDetails.IsActive = true;
-                    updateDetails.ModifiedDate = DateTime.Now;
- 
-                    _schoolManagementContext.Users.Update(updateDetails);
-                    _schoolManagementContext.SaveChanges();
+                    int id = (int)HttpContext.Session.GetInt32("links");
 
-                    return RedirectToAction("Login", "Auth");
+                    if (id != null)
+                    {
+                        User updateDetails = _schoolManagementContext.Users.FirstOrDefault(x => x.UserId == id);
+
+                        //Passing the Password to Encrypt method and the method will return encrypted string and 
+                        // stored in Password variable.  
+
+                        updateDetails.Password = EncryptionDecryption.Encrypt(objUser.Password.ToString());
+                        updateDetails.IsActive = true;
+                        updateDetails.ModifiedDate = DateTime.Now;
+
+                        _schoolManagementContext.Users.Update(updateDetails);
+                        _schoolManagementContext.SaveChanges();
+
+                        return RedirectToAction("Login", "Auth");
+                    }
+                    else
+                    {
+                        message = CommonValidations.RecordExistsMsg;
+                        return Content(message);
+                    }
                 }
-                else
-                {
-                    message = CommonValidations.RecordExistsMsg;
-                    return Content(message);
-                }
+            }
+            catch (Exception)
+            {
+                return View("Error");
             }
             return View();
         }

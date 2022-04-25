@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SM.Repositories.IRepository;
+using SM.Repositories.Repository;
 using SM.Web.Data;
 using System;
 using System.Collections.Generic;
@@ -26,12 +28,17 @@ namespace SM.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //Registration of Base Repository.
+            services.AddTransient(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+            services.AddTransient<IUserRepository, UserRepository>();
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
+
             services.AddControllersWithViews();
             services.AddDistributedMemoryCache();
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
-                    options.LoginPath = "/login";
+                    options.LoginPath = "Auth/login";
                     options.Events = new CookieAuthenticationEvents()
                     {
                         OnSigningIn = async context =>
@@ -65,8 +72,10 @@ namespace SM.Web
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, SchoolManagementContext schoolManagementContext)
         {
+            schoolManagementContext.Database.Migrate();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

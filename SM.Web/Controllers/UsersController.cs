@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SM.Entity;
+using SM.Repositories.IRepository;
 using SM.Web.Data;
 using System;
 using System.Collections.Generic;
@@ -13,9 +14,11 @@ namespace SM.Web.Controllers
     public class UsersController : Controller
     {
         private readonly SchoolManagementContext _schoolManagementContext;
-        public UsersController(SchoolManagementContext schoolManagementContext)
+        private IUnitOfWork _unitOfWork;
+        public UsersController(SchoolManagementContext schoolManagementContext, IUnitOfWork unitOfWork)
         {
             _schoolManagementContext = schoolManagementContext;
+            _unitOfWork = unitOfWork;
         }
 
         /// <summary>
@@ -28,10 +31,23 @@ namespace SM.Web.Controllers
         {
             //int id = (int)HttpContext.Session.GetInt32("userID");
             //List<User> users = _schoolManagementContext.Users.Where(x => x.UserId == id).ToList();
-            List<User> users = _schoolManagementContext.Users.Where(x => x.IsActive == true).ToList();
+            //List<User> users = _schoolManagementContext.Users.Where(x => x.IsActive == true).ToList();
+
+            //Geeting all users with user repository.
+            var users = _unitOfWork.UserRepository.GetAll();
             ViewBag.users = users;
             return View();
         }
+        #endregion
+
+        /// <summary>
+        /// GetUsers with user repository
+        /// </summary>
+        #region GetUsers with repository
+        //public IList<User> GetAll()
+        //{
+        //    return _schoolManagementContext.Users.ToList();
+        //}
         #endregion
 
         /// <summary>
@@ -54,7 +70,8 @@ namespace SM.Web.Controllers
         [HttpPost]
         public IActionResult UpdateUserDetailsPost(User objUserDetail)
         {
-            int? id = HttpContext.Session.GetInt32("userId");
+            //Session is set into Authcontroller for userId in Set password method.
+            int id = (int)HttpContext.Session.GetInt32("links");
             if (id != null)
             {
                 User updateDetails = _schoolManagementContext.Users.FirstOrDefault(x => x.UserId == objUserDetail.UserId);
@@ -94,7 +111,7 @@ namespace SM.Web.Controllers
         [HttpPost]
         public IActionResult DeleteUserDetailsPost(User objDeleteDetails)
         {
-            int? id = HttpContext.Session.GetInt32("userId");
+            int id = (int)HttpContext.Session.GetInt32("links");
             if (id != null)
             {
                 User deleteDetails = _schoolManagementContext.Users.FirstOrDefault(x => x.UserId == objDeleteDetails.UserId);
@@ -113,35 +130,14 @@ namespace SM.Web.Controllers
         #endregion
 
         /// <summary>
-        /// SendMailGetModel is modal for send mail to particular user.
+        /// Delete user with the help of repository.
         /// </summary>
-        //#region SendMailGetModel
-        //[HttpGet]
-        //public IActionResult SendMailGet(int id)
+        #region Delete with repo
+        //public void Delete(User user)
         //{
-        //    var userDetails = _schoolManagementContext.Users.Where(x => x.UserId == id).FirstOrDefault();
-        //    return PartialView("_SendMailPartial", userDetails);
+        //    _schoolManagementContext.Remove(user);
         //}
-        //#endregion
+        #endregion
 
-        /// <summary>
-        /// SendMailPost is method for sned email with set new password template.
-        /// </summary>
-        //#region SendMailPost
-        //[HttpPost]
-        //public IActionResult SendMailPost(User objUser)
-        //{
-        //    var userDetails = _schoolManagementContext.Users.Where(x => x.EmailAddress == objUser.EmailAddress).FirstOrDefault();
-        //    //objUser.FirstName = objUser.FirstName;
-        //    var subject = "Set Password";
-        //    var body = "Hi";
-        //    //var firstname = objUser.FirstName;
-        //    //string docPath = Path.Combine(Environment.ContentRootPath, "App_Data/docs");
-
-        //    SendEmail(objUser.EmailAddress, body, subject);
-
-        //    return Index();
-        //}
-        //#endregion
     }
 }

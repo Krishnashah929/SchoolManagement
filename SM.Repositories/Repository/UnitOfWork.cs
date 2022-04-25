@@ -1,12 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SM.Repositories.IRepository;
+using SM.Web.Data;
 
 namespace SM.Repositories.Repository
 {
-    class UnitOfWork
+    public class UnitOfWork : IUnitOfWork
     {
+        private SchoolManagementContext _schoolManagementContext;
+        private IUserRepository _userRepository;
+        public UnitOfWork(SchoolManagementContext schoolManagementContext)
+        {
+            _schoolManagementContext = schoolManagementContext;
+        }  
+        public IUserRepository UserRepository
+        {
+            get
+            {
+                return _userRepository = _userRepository ?? new UserRepository(_schoolManagementContext);
+            }
+        }
+        public void Save()
+        {
+            _schoolManagementContext.SaveChanges();
+        }
     }
 }

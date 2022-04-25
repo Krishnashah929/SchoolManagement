@@ -8,7 +8,7 @@ namespace SM.Common
     /// <summary>
     /// This Method is for encrypting password when user register themselves
     /// </summary>
-    public class Cryptography
+    public class EncryptionDecryption
     {
         public static string Encrypt(string encryptString)
         {
