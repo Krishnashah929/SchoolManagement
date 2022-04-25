@@ -53,10 +53,7 @@
                                  @sm.Lastname
                               </td>
                               <td>
-                                 <button type="button" class="btn" data-toggle="modal" data-target="#idSendMailModel"
-                                         onclick="fnSendgetEmailModal(this)" data-id="@sm.UserId">
-                                    @sm.EmailAddress
-                                 </button>
+                                 @sm.EmailAddress
                               </td>
                               <td>
                                  <button type="button" class="btn" data-toggle="modal" data-target="#UpdateDetailsModel"
@@ -85,7 +82,6 @@
 
 <section id="Model1"></section>
 <section id="Model2"></section>
-<section id="Model3"></section>
 
 
 <script>
@@ -150,34 +146,34 @@
          }
       });
    }
-   function fnSendgetEmailModal(sm) {
-      var id = sm.getAttribute("data-id");
-      $.ajax({
-         url: '/Users/SendMailGet',
-         type: 'GET',
-         data: { "id": id },
-         success: function (response) {
-            $('#Model3').html(response);
-            $('#idSendMailModel').modal("show");
-         }
-      });
-   }
-   function fnPostSendMail() {
-      var data = {};
-      data.userId = document.getElementById("id").value;
-      data.emailAddress = document.getElementById("idEmail").value;
-      $.ajax({
-         url: '/Users/SendMailPost',
-         type: 'POST',
-         data: data,
-         success: function (result) {
-            if (result.value == "true") {
-               alert("Your E-mail is send to user.");
-            }
-            else {
-               alert("Invalid");
-            }
-         }
-      });
-   }
+   //function fnSendgetEmailModal(sm) {
+   //   var id = sm.getAttribute("data-id");
+   //   $.ajax({
+   //      url: '/Users/SendMailGet',
+   //      type: 'GET',
+   //      data: { "id": id },
+   //      success: function (response) {
+   //         $('#Model3').html(response);
+   //         $('#idSendMailModel').modal("show");
+   //      }
+   //   });
+   //}
+   //function fnPostSendMail() {
+   //   var data = {};
+   //   data.userId = document.getElementById("id").value;
+   //   data.emailAddress = document.getElementById("idEmail").value;
+   //   $.ajax({
+   //      url: '/Users/SendMailPost',
+   //      type: 'POST',
+   //      data: data,
+   //      success: function (result) {
+   //         if (result.value == "true") {
+   //            alert("Your E-mail is send to user.");
+   //         }
+   //         else {
+   //            alert("Invalid");
+   //         }
+   //      }
+   //   });
+   //}
 </script> 

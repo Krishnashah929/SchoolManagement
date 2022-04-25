@@ -233,41 +233,31 @@ namespace SM.Web.Controllers
             ModelState.Remove("FirstName");
             ModelState.Remove("Lastname");
             ModelState.Remove("EmailAddress");
-            try
+            if (ModelState.IsValid)
             {
-                if (ModelState.IsValid)
+                int id = (int)HttpContext.Session.GetInt32("links");
+
+                if (id != null)
                 {
-                    int id = (int)HttpContext.Session.GetInt32("links");
+                    User updateDetails = _schoolManagementContext.Users.FirstOrDefault(x => x.UserId == id);
+                  
+                    //Passing the Password to Encrypt method and the method will return encrypted string and 
+                    // stored in Password variable.  
+                  
+                    updateDetails.Password = Cryptography.Encrypt(objUser.Password.ToString());
+                    updateDetails.IsActive = true;
+                    updateDetails.ModifiedDate = DateTime.Now;
+ 
+                    _schoolManagementContext.Users.Update(updateDetails);
+                    _schoolManagementContext.SaveChanges();
 
-                    if (id != null)
-                    {
-                        User updateDetails = _schoolManagementContext.Users.FirstOrDefault(x => x.UserId == id);
-
-                        updateDetails.ModifiedDate = DateTime.Now;
-                        updateDetails.EmailAddress = objUser.EmailAddress;
-                        /// <summary>
-                        /// Passing the Password to Encrypt method and the method will return encrypted string and 
-                        /// stored in Password variable.  
-                        /// </summary>
-                        objUser.Password = Cryptography.Encrypt(objUser.Password.ToString());
-                        objUser.CreatedDate = DateTime.Now;
-                        objUser.IsActive = true;
-
-                        _schoolManagementContext.Users.Update(objUser);
-                        _schoolManagementContext.SaveChanges();
-
-                        return RedirectToAction("Login", "Auth");
-                    }
-                    else
-                    {
-                        message = CommonValidations.RecordExistsMsg;
-                        return Content(message);
-                    }
+                    return RedirectToAction("Login", "Auth");
                 }
-            }
-            catch (Exception )
-            {
-                return View("Error");
+                else
+                {
+                    message = CommonValidations.RecordExistsMsg;
+                    return Content(message);
+                }
             }
             return View();
         }

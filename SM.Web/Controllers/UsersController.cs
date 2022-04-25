@@ -13,7 +13,11 @@ namespace SM.Web.Controllers
     public class UsersController : Controller
     {
         private readonly SchoolManagementContext _schoolManagementContext;
-  
+        public UsersController(SchoolManagementContext schoolManagementContext)
+        {
+            _schoolManagementContext = schoolManagementContext;
+        }
+
         /// <summary>
         /// After successfull login of user they will redirect on Index Page.
         /// </summary>
@@ -111,14 +115,14 @@ namespace SM.Web.Controllers
         /// <summary>
         /// SendMailGetModel is modal for send mail to particular user.
         /// </summary>
-        #region SendMailGetModel
-        [HttpGet]
-        public IActionResult SendMailGet(int id)
-        {
-            var userDetails = _schoolManagementContext.Users.Where(x => x.UserId == id).FirstOrDefault();
-            return PartialView("_SendMailPartial", userDetails);
-        }
-        #endregion
+        //#region SendMailGetModel
+        //[HttpGet]
+        //public IActionResult SendMailGet(int id)
+        //{
+        //    var userDetails = _schoolManagementContext.Users.Where(x => x.UserId == id).FirstOrDefault();
+        //    return PartialView("_SendMailPartial", userDetails);
+        //}
+        //#endregion
 
         /// <summary>
         /// SendMailPost is method for sned email with set new password template.
