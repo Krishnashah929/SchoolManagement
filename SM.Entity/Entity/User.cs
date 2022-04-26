@@ -24,7 +24,7 @@ namespace SM.Entity
         /// FirstName input feild.
         /// </summary>
         [Required(ErrorMessage = CommonValidations.RequiredErrorMsg)]
-        [MaxLength(50)]
+        [MaxLength(10)]
         [DisplayName ("First Name")]
         public string FirstName { get; set; }
 
@@ -32,7 +32,7 @@ namespace SM.Entity
         /// LastName input feild.
         /// </summary>
         [Required(ErrorMessage = CommonValidations.RequiredErrorMsg)]
-        [MaxLength(50)]
+        [MaxLength(10)]
         [DisplayName("Last Name")]
         public string Lastname { get; set; }
 

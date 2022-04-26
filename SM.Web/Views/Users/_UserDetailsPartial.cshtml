@@ -1,4 +1,5 @@
 ﻿@using SM.Entity
+@model User
 <div class="modal shadow" id="UpdateDetailsModel">
    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -11,20 +12,25 @@
             </button>
          </div>
          <div class="modal-body">
-            <form data-ajax="true" data-ajax-method="get" data-ajax-update="#example2" data-ajax-mode='replace' data-ajax-url="@Url.Action("Index","Users")">
+            <form method="post" asp-action="UpdateUserDetailsPost" asp-controller="Users">
+               <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                <input type="hidden" id="id" class="form-control" value="@Model.UserId" />
+
                <div class="row mt-3">
-                  <input type="text" class="form-control" id="idFirstName" placeholder="First Name" value="@Model.FirstName">
+                  <input type="text" asp-for="FirstName" class="form-control" id="idFirstName" placeholder="First Name" value="@Model.FirstName">
+                  <span asp-validation-for="FirstName" class="text-danger"></span>
                </div>
                <div class="row mt-3">
-                  <input type="text" class="form-control" id="idLastName" placeholder="Last Name" value="@Model.Lastname">
+                  <input type="text" asp-for="Lastname" class="form-control" id="idLastName" placeholder="Last Name" value="@Model.Lastname">
+                  <span asp-validation-for="Lastname" class="text-danger"></span>
                </div>
                <div class="row mt-3">
-                  <input type="email" class="form-control" id="idEmail" placeholder="Email Address" value="@Model.EmailAddress">
+                  <input type="email" asp-for="EmailAddress" class="form-control" id="idEmail" placeholder="Email Address" value="@Model.EmailAddress">
+                  <span asp-validation-for="EmailAddress" class="text-danger"></span>
                </div>
             </form>
             <br>
-            <button type="button" class="btn btn-info btn-block" onclick="fnPostUpdateDetail()" data-dismiss="modal">
+            <button type="submit" class="btn btn-info btn-block" onclick="fnPostUpdateDetail()" data-dismiss="modal">
                Update
             </button>
          </div>

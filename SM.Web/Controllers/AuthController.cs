@@ -51,20 +51,26 @@ namespace SM.Web.Controllers
         #region Login(POST)
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginModel objLoginModel)
+        public async Task<IActionResult> Login(LoginModel objloginModel)
         {
             try
             {
+                ModelState.Remove("FirstName");
+                ModelState.Remove("Lastname");
+                ModelState.Remove("RetypePassword");
                 if (ModelState.IsValid)
                 {
-                    var userPassword = EncryptionDecryption.Encrypt(objLoginModel.Password.ToString());
-                    var loggedinUser = _schoolManagementContext.Users.FirstOrDefault(x => x.EmailAddress == objLoginModel.EmailAddress && x.Password == userPassword);
+                    var userPassword = EncryptionDecryption.Encrypt(objloginModel.Password.ToString());
+                    var loggedinUser = _schoolManagementContext.Users.FirstOrDefault(x => x.EmailAddress == objloginModel.EmailAddress && x.Password == userPassword);
                     if (loggedinUser != null)
                     {
+                        var Name = loggedinUser.FirstName + " " + loggedinUser.Lastname;
                         HttpContext.Session.SetString("Userlogeddin", "true");
+                        HttpContext.Session.SetString("Name", Name);
+                       
                         var claims = new List<Claim>();
-                        claims.Add(new Claim("emailAddress", objLoginModel.EmailAddress));
-                        claims.Add(new Claim(ClaimTypes.NameIdentifier, objLoginModel.EmailAddress));
+                        claims.Add(new Claim("emailAddress", objloginModel.EmailAddress));
+                        claims.Add(new Claim(ClaimTypes.NameIdentifier, objloginModel.EmailAddress));
                         var claimIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                         var claimPrincipal = new ClaimsPrincipal(claimIdentity);
                         await HttpContext.SignInAsync(claimPrincipal);
@@ -114,8 +120,7 @@ namespace SM.Web.Controllers
                 {
                     if (_schoolManagementContext.Users.Where(x => x.EmailAddress == objUser.EmailAddress).Count() == 0)
                     {
-
-                        HttpContext.Session.SetString("email", objUser.EmailAddress);
+                     
 
                         objUser.Password = string.Empty;
                         objUser.CreatedDate = DateTime.Now;
@@ -196,7 +201,6 @@ namespace SM.Web.Controllers
         [Authorize]
         public async Task<IActionResult> LogOut()
         {
-            HttpContext.Session.SetString("Userlogeddin", false.ToString());
             HttpContext.Session.Clear();
             await HttpContext.SignOutAsync();
             return RedirectToAction("Dashboard", "Home");
@@ -212,7 +216,6 @@ namespace SM.Web.Controllers
         {
             try
             {
-
                 //int id = Convert.ToInt32(HttpContext.Session.SetString("links", link));
                 link = EncryptionDecryption.Decrypt(link.ToString());
                 int id = Convert.ToInt32(link);

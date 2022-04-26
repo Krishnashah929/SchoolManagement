@@ -1,13 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SM.Entity;
 using SM.Repositories.IRepository;
 using SM.Web.Data;
 using System;
-using System.Collections.Generic;
 using System.Linq;
- 
 
 namespace SM.Web.Controllers
 {
@@ -15,25 +12,23 @@ namespace SM.Web.Controllers
     {
         private readonly SchoolManagementContext _schoolManagementContext;
         private IUnitOfWork _unitOfWork;
-        public UsersController(SchoolManagementContext schoolManagementContext, IUnitOfWork unitOfWork)
+        private IUserRepository _userRepository;
+        public UsersController(SchoolManagementContext schoolManagementContext, IUnitOfWork unitOfWork, IUserRepository userRepository)
         {
             _schoolManagementContext = schoolManagementContext;
             _unitOfWork = unitOfWork;
+            _userRepository = userRepository;
         }
 
         /// <summary>
         /// After successfull login of user they will redirect on Index Page.
+        /// Geeting all users with user repository.
         /// </summary>
         #region Index(GET)
         [AllowAnonymous]
         [HttpGet]
         public IActionResult Index()
-        {
-            //int id = (int)HttpContext.Session.GetInt32("userID");
-            //List<User> users = _schoolManagementContext.Users.Where(x => x.UserId == id).ToList();
-            //List<User> users = _schoolManagementContext.Users.Where(x => x.IsActive == true).ToList();
-
-            //Geeting all users with user repository.
+        { 
             var users = _unitOfWork.UserRepository.GetAll();
             ViewBag.users = users;
             return View();
@@ -41,20 +36,9 @@ namespace SM.Web.Controllers
         #endregion
 
         /// <summary>
-        /// GetUsers with user repository
-        /// </summary>
-        #region GetUsers with repository
-        //public IList<User> GetAll()
-        //{
-        //    return _schoolManagementContext.Users.ToList();
-        //}
-        #endregion
-
-        /// <summary>
         /// UpdateUserDetails is modal for get the details of particular user.
         /// </summary>
         #region UpdateUserDetailsGet
-
         [HttpGet]
         public IActionResult UpdateUserDetailsGet(int id)
         {
@@ -65,30 +49,30 @@ namespace SM.Web.Controllers
 
         /// <summary>
         /// UpdateUserDetails is modal for updating the details of particular user.
+        /// update details of users with user repository.
         /// </summary>
         #region UpdateUserDetailsPost 
         [HttpPost]
-        public IActionResult UpdateUserDetailsPost(User objUserDetail)
-        {
-            //Session is set into Authcontroller for userId in Set password method.
-            int id = (int)HttpContext.Session.GetInt32("links");
-            if (id != null)
+        public IActionResult UpdateUserDetailsPost(User updateUser)
+        { 
+            try
             {
-                User updateDetails = _schoolManagementContext.Users.FirstOrDefault(x => x.UserId == objUserDetail.UserId);
-                updateDetails.FirstName = objUserDetail.FirstName;
-                updateDetails.Lastname = objUserDetail.Lastname;
-                updateDetails.EmailAddress = objUserDetail.EmailAddress;
-                updateDetails.ModifiedDate = DateTime.Now;
-                var result = _schoolManagementContext.Users.Update(updateDetails);
-                _schoolManagementContext.SaveChanges();
-
-                if (result != null)
+                ModelState.Remove("Password");
+                ModelState.Remove("RetypePassword");
+                if (ModelState.IsValid)
                 {
-                    return Ok(Json("true"));
+                    var User = _userRepository.Update(updateUser);
+                    if (User != null)
+                    {
+                        return Ok(Json("true"));
+                    }
                 }
-                return Ok(Json("false"));
+                return NoContent();
             }
-            return Index();
+            catch (Exception)
+            {
+                return View("Error");
+            }
         }
         #endregion
 
@@ -106,38 +90,97 @@ namespace SM.Web.Controllers
 
         /// <summary>
         /// DeleteUserDetailsPost is modal for deleting the particular user.
+        /// Delete users with user repository.
         /// </summary>
         #region DeleteUserDetailsPost
         [HttpPost]
-        public IActionResult DeleteUserDetailsPost(User objDeleteDetails)
+        public IActionResult DeleteUserDetailsPost(User deleteUser)
         {
-            int id = (int)HttpContext.Session.GetInt32("links");
-            if (id != null)
+            try
             {
-                User deleteDetails = _schoolManagementContext.Users.FirstOrDefault(x => x.UserId == objDeleteDetails.UserId);
-                deleteDetails.IsDelete = true;
-                deleteDetails.IsActive = false;
-                var result = _schoolManagementContext.Users.Update(deleteDetails);
-                _schoolManagementContext.SaveChanges();
-                if (result != null)
+                var User = _userRepository.Delete(deleteUser);
+                if (User != null)
                 {
                     return Ok(Json("true"));
                 }
-                return Ok(Json("false"));
+                return NoContent();
             }
-            return Index();
+            catch (Exception)
+            {
+                return View("Error");
+            }
         }
         #endregion
-
-        /// <summary>
-        /// Delete user with the help of repository.
-        /// </summary>
-        #region Delete with repo
-        //public void Delete(User user)
-        //{
-        //    _schoolManagementContext.Remove(user);
-        //}
-        #endregion
-
     }
 }
+
+
+//All Previous code without repository pattern.
+/// <summary>
+/// After successfull login of user they will redirect on Index Page.
+/// </summary>
+//#region Index(GET)
+//[AllowAnonymous]
+//[HttpGet]
+//public IActionResult Index()
+//{
+//    //int id = (int)HttpContext.Session.GetInt32("userID");
+//    //List<User> users = _schoolManagementContext.Users.Where(x => x.UserId == id).ToList();
+//    //List<User> users = _schoolManagementContext.Users.Where(x => x.IsActive == true).ToList();
+//}
+//#endregion
+/// <summary>
+/// UpdateUserDetails is modal for updating the details of particular user.
+/// </summary>
+//#region UpdateUserDetailsPost 
+//[HttpPost]
+//public IActionResult UpdateUserDetailsPost(User updateUser)
+//{
+//Session is set into Authcontroller for userId in Set password method.
+//int id = (int)HttpContext.Session.GetInt32("links");
+//if (id != null)
+//{
+//    User updateDetails = _schoolManagementContext.Users.FirstOrDefault(x => x.UserId == objUserDetail.UserId);
+//    updateDetails.FirstName = objUserDetail.FirstName;
+//    updateDetails.Lastname = objUserDetail.Lastname;
+//    updateDetails.EmailAddress = objUserDetail.EmailAddress;
+//    updateDetails.ModifiedDate = DateTime.Now;
+//    var result = _schoolManagementContext.Users.Update(updateDetails);
+//    _schoolManagementContext.SaveChanges();
+
+//    if (result != null)
+//    {
+//        return Ok(Json("true"));
+//    }
+//    return Ok(Json("false"));
+//}
+//return Index();
+
+//update details of users with user repository.
+//}
+//#endregion
+
+/// <summary>
+/// DeleteUserDetailsPost is modal for deleting the particular user.
+/// </summary>
+//#region DeleteUserDetailsPost
+//[HttpPost]
+//public IActionResult DeleteUserDetailsPost(User deleteUser)
+//{
+//    //int id = (int)HttpContext.Session.GetInt32("links");
+//    //if (id != null)
+//    //{
+//    //    User deleteDetails = _schoolManagementContext.Users.FirstOrDefault(x => x.UserId == objDeleteDetails.UserId);
+//    //    deleteDetails.IsDelete = true;
+//    //    deleteDetails.IsActive = false;
+//    //    var result = _schoolManagementContext.Users.Update(deleteDetails);
+//    //    _schoolManagementContext.SaveChanges();
+//    //    if (result != null)
+//    //    {
+//    //        return Ok(Json("true"));
+//    //    }
+//    //    return Ok(Json("false"));
+//    //}
+//    //return Index();
+//}
+//#endregion

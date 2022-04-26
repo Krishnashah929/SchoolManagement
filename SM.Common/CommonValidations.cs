@@ -67,7 +67,7 @@ namespace SM.Common
         /// <summary>
         /// The string max length...
         /// </summary>
-        public const string StringLength = "The {0} must be less than {1} characters.";
+        public const string StringLength = "The {0} must be less than {10} characters.";
     }
 }
 

@@ -11,6 +11,8 @@ namespace SM.Repositories.IRepository
     {
         IEnumerable<User> GetAll();
         User GetById(int UserId);
+        User Update(User user);
+        User Delete(User user);
         //void Insert(User user);
         //void Update(User user);
         //void Delete(User user);

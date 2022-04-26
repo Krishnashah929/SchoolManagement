@@ -38,7 +38,7 @@ namespace SM.Web
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
-                    options.LoginPath = "Auth/login";
+                    options.LoginPath = "/Auth/login";
                     options.Events = new CookieAuthenticationEvents()
                     {
                         OnSigningIn = async context =>
