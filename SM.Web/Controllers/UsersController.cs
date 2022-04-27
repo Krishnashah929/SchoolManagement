@@ -28,7 +28,7 @@ namespace SM.Web.Controllers
         [AllowAnonymous]
         [HttpGet]
         public IActionResult Index()
-        { 
+        {
             var users = _unitOfWork.UserRepository.GetAll();
             ViewBag.users = users;
             return View();
@@ -54,17 +54,24 @@ namespace SM.Web.Controllers
         #region UpdateUserDetailsPost 
         [HttpPost]
         public IActionResult UpdateUserDetailsPost(User updateUser)
-        { 
+        {
             try
             {
                 ModelState.Remove("Password");
                 ModelState.Remove("RetypePassword");
                 if (ModelState.IsValid)
                 {
-                    var User = _userRepository.Update(updateUser);
-                    if (User != null)
+                    if (updateUser != null)
                     {
-                        return Ok(Json("true"));
+                        var User = _userRepository.Update(updateUser);
+                        if (User != null)
+                        {
+                            return Ok(Json("true"));
+                        }
+                        else
+                        {
+                            return Ok(Json("false"));
+                        }
                     }
                 }
                 return NoContent();
@@ -98,10 +105,17 @@ namespace SM.Web.Controllers
         {
             try
             {
-                var User = _userRepository.Delete(deleteUser);
-                if (User != null)
+                if(deleteUser != null)
                 {
-                    return Ok(Json("true"));
+                    var User = _userRepository.Delete(deleteUser);
+                    if (User != null)
+                    {
+                        return Ok(Json("true"));
+                    }
+                    else
+                    {
+                        return Ok(Json("false"));
+                    }
                 }
                 return NoContent();
             }
