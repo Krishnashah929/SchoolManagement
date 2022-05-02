@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AspNetCore.PaginatedList;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SM.Entity;
 using SM.Repositories.IRepository;
 using SM.Web.Data;
@@ -27,11 +29,41 @@ namespace SM.Web.Controllers
         #region Index(GET)
         [AllowAnonymous]
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult Index(string sortOrder, int? pageNumber)
         {
-            var users = _unitOfWork.UserRepository.GetAll();
-            ViewBag.users = users;
-            return View();
+            ViewBag.SortingUserId = String.IsNullOrEmpty(sortOrder) ? "UserId" : "";
+            ViewBag.SortingFirstName = String.IsNullOrEmpty(sortOrder) ? "FirstName" : "";
+            ViewBag.SortingLastName = String.IsNullOrEmpty(sortOrder) ? "LastName" : "";
+            ViewBag.SortingEmail = String.IsNullOrEmpty(sortOrder) ? "Email" : "";
+            ViewData["CurrentSort"] = sortOrder;
+
+            var users = from u in _schoolManagementContext.Users select u;
+
+            switch (sortOrder)
+            {
+                case "UserId":
+                    users = users.OrderByDescending(u => u.UserId);
+                    break;
+                case "FirstName":
+                    users = users.OrderByDescending(u => u.FirstName);
+                    break;
+                case "LastName":
+                    users = users.OrderByDescending(u => u.Lastname);
+                    break;
+                case "Email":
+                    users = users.OrderByDescending(u => u.EmailAddress);
+                    break;
+
+                default:
+                    users = users.OrderBy(u => u.FirstName);
+                    break;
+            }
+
+            var user = _unitOfWork.UserRepository.GetAll();
+            ViewBag.users = user;
+            int pageSize = 5;
+            return View(PaginatedList<User>.Create(
+                (System.Collections.Generic.List<User>)users.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
         #endregion
 
@@ -105,7 +137,7 @@ namespace SM.Web.Controllers
         {
             try
             {
-                if(deleteUser != null)
+                if (deleteUser != null)
                 {
                     var User = _userRepository.Delete(deleteUser);
                     if (User != null)

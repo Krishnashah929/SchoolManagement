@@ -1,12 +1,10 @@
-﻿@*
-   For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
    Layout = "_LayoutUsers";
 }
 @{
    ViewData["Title"] = "Index";
 }
+@*@model PaginatedList<SM.Entity.User>*@
 @{
    List<User> userList = null;
    if (ViewBag.users != null)
@@ -31,30 +29,33 @@
                </div>
                <!-- /.card-header -->
                <div class="card-body">
-                  <table id="example2" class="table table-bordered table-hover" >
+                  <table id="example2" class="table table-bordered table-hover">
                      <thead>
                         <tr>
-                           <th>UserId</th>
-                           <th>First Name</th>
-                           <th>Last Name</th>
-                           <th>Email</th>
+                           <th>
+                              <a asp-action="Index" asp-route-sortOrder="@ViewData["SortingUserId"]"> UserId</a>
+                           </th>
+                           <th>
+                              <a asp-action="Index" asp-route-sortOrder="@ViewData["SortingFirstName"]">First Name</a>
+                           </th>
+                           <th>
+                              <a asp-action="Index" asp-route-sortOrder="@ViewData["SortingLastName"]"> Last Name </a>
+                           </th>
+                           <th>
+                              <a asp-action="Index" asp-route-sortOrder="@ViewData["SortingEmail"]"> Email </a>
+                           </th>
                            <th>Edit</th>
                            <th>Delete</th>
-
                         </tr>
                      </thead>
                      <tbody>
                         @foreach (User sm in userList)
                         {
                            <tr>
-                              <td>@sm.UserId</td>
-                              <td>@sm.FirstName</td>
-                              <td>
-                                 @sm.Lastname
-                              </td>
-                              <td>
-                                 @sm.EmailAddress
-                              </td>
+                              <td>@Html.DisplayFor(modelItem => sm.UserId)</td>
+                              <td>@Html.DisplayFor(modelItem => sm.FirstName)</td>
+                              <td>@Html.DisplayFor(modelItem => sm.Lastname)</td>
+                              <td>@Html.DisplayFor(modelItem => sm.EmailAddress)</td>
                               <td>
                                  <button type="button" class="btn" data-toggle="modal" data-target="#UpdateDetailsModel"
                                          onclick="fnGetUpdateDetailModal(this)" data-id="@sm.UserId">
@@ -71,6 +72,25 @@
                         }
                      </tbody>
                   </table>
+                  @{
+                     var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+                     var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+                  }
+
+                  <a asp-action="Index"
+                     asp-route-sortOrder="@ViewData["CurrentSort"]"
+                     asp-route-pageNumber="@(Model.PageIndex - 1)"
+                     asp-route-currentFilter="@ViewData["CurrentFilter"]"
+                     class="btn btn-primary @prevDisabled">
+                     Previous
+                  </a>
+                  <a asp-action="Index"
+                     asp-route-sortOrder="@ViewData["CurrentSort"]"
+                     asp-route-pageNumber="@(Model.PageIndex + 1)"
+                     asp-route-currentFilter="@ViewData["CurrentFilter"]"
+                     class="btn btn-primary @nextDisabled">
+                     Next
+                  </a>
                </div>
             </div>
          </div>
@@ -146,34 +166,4 @@
          }
       });
    }
-   //function fnSendgetEmailModal(sm) {
-   //   var id = sm.getAttribute("data-id");
-   //   $.ajax({
-   //      url: '/Users/SendMailGet',
-   //      type: 'GET',
-   //      data: { "id": id },
-   //      success: function (response) {
-   //         $('#Model3').html(response);
-   //         $('#idSendMailModel').modal("show");
-   //      }
-   //   });
-   //}
-   //function fnPostSendMail() {
-   //   var data = {};
-   //   data.userId = document.getElementById("id").value;
-   //   data.emailAddress = document.getElementById("idEmail").value;
-   //   $.ajax({
-   //      url: '/Users/SendMailPost',
-   //      type: 'POST',
-   //      data: data,
-   //      success: function (result) {
-   //         if (result.value == "true") {
-   //            alert("Your E-mail is send to user.");
-   //         }
-   //         else {
-   //            alert("Invalid");
-   //         }
-   //      }
-   //   });
-   //}
-</script> 
+</script>
